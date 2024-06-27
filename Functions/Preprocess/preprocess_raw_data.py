@@ -4,6 +4,7 @@ import scipy as sp
 import matplotlib.pyplot as plt
 from copy import deepcopy
 from pathlib import Path
+from ..Basics import myfft
 
 class preprocess_raw_data:
     def __init__(self, target_rate = 2000, filter_frange = [0.5,128], filter_order = 3, target_tags = [20,40], cleanLine_filtbw = 2, epoch_time_int = [-1,3], DataInfo = None, save_path = './'):
@@ -30,7 +31,7 @@ class preprocess_raw_data:
         
         print('Finding fft and psd of data...')
         
-        self.myfft(data_pp, ifPlot=True)
+        myfft.getfft(data, ifPlot=True)
         while True:
             uans = input('Does it need notch filter at 50Hz?(y/n): ').lower()
             if uans == 'y':
@@ -150,31 +151,3 @@ class preprocess_raw_data:
         data_epoched = (data_epoched - np.mean(data_epoched[:,data['time']<0,:], axis=1, keepdims=True))/np.std(data_epoched[:,data['time']<0,:], axis=1, keepdims=True)
         data['data'] = np.apply_along_axis(sp.stats.zscore , 1, data['data'])
         return data
-
-    def myfft(self, data, nfft = None, ifPlot = None):
-        ndim = data['data'].ndim
-        if not nfft:
-            if ndim == 1:
-                nfft = len(data['data'])
-            elif ndim == 2:
-                nfft = data['data'].shape[1]
-            else:
-                raise ValueError("Not supporting the epoched data or any other data with dimension higher than 3")
-        
-        Xf = np.abs(sp.fft.fft(data['data'], nfft)/nfft)**2
-        if data['nch'] > 1:
-            Xf = Xf[:,:nfft//2]
-        else:
-            Xf = Xf[:nfft//2]
-
-        freq = sp.fft.fftfreq(nfft, 1/data['srate'])[:nfft//2]
-
-        if ifPlot:
-            for ch in range(data['nch']):
-                plt.plot(freq,Xf[ch,:],label='Channel'+str(ch+1))
-            plt.legend()
-            plt.xlim([0,64])
-            plt.show()
-            print('Watch the PSD of all channels and check the results and then close it for decision!')
-        else:
-            return Xf, freq

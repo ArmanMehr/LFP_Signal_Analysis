@@ -2,7 +2,7 @@ import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 
-def myfft(data, event_tag = None, nfft = None, ifPlot = False):
+def getfft(data, event_tag = None, nfft = None, ifPlot = False):
     
     ppflag = 0
     if any(key.startswith('ev') for key in data):
@@ -12,16 +12,16 @@ def myfft(data, event_tag = None, nfft = None, ifPlot = False):
         if not event_tag:
             raise ValueError('event_tag input cannot be empty in preprocessed data.')
         
-        data_f, freq = myfft_ts(data['ev'+str(event_tag)]['data'],data['srate'], ifPlot = ifPlot, nfft = nfft)
+        data_f, freq = getfft_ts(data['ev'+str(event_tag)]['data'],data['srate'], ifPlot = ifPlot, nfft = nfft)
     else:
-        data_f, freq = myfft_ts(data['data'], data['srate'], ifPlot = ifPlot, nfft = nfft)
+        data_f, freq = getfft_ts(data['data'], data['srate'], ifPlot = ifPlot, nfft = nfft)
 
     if ifPlot:
         return
     else:
         return data_f, freq
 
-def myfft_ts(data_ts, Fs, nfft = None, ifPlot = False, channel_names = None):
+def getfft_ts(data_ts, Fs, nfft = None, ifPlot = False, channel_names = None):
     
     if not nfft:
         nfft = 8*Fs
