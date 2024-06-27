@@ -6,7 +6,7 @@ from copy import deepcopy
 from pathlib import Path
 
 class preprocess_raw_data:
-    def __init__(self, target_rate = 2000, filter_frange = [0.5,128], filter_order = 3, target_tags = [20,40], cleanLine_filtbw = 2, epoch_time_int = [-1,3], save_path = './'):
+    def __init__(self, target_rate = 2000, filter_frange = [0.5,128], filter_order = 3, target_tags = [20,40], cleanLine_filtbw = 2, epoch_time_int = [-1,3], DataInfo = None, save_path = './'):
         self.target_rate = target_rate
         self.filter_frange = filter_frange
         self.filter_order = filter_order
@@ -51,9 +51,12 @@ class preprocess_raw_data:
 
         data_pp['time'] = epoched_data_temp['time']
         del data_pp['data']
+
+        # To be added (dataset info)        
+        # if DataInfo:
+        #     if not ''
         
         Path(self.save_path).mkdir(parents=True, exist_ok=True)
-
         with open(self.save_path+'/data_pp.pkl', 'wb') as f:
             pickle.dump(data_pp, f)
 
@@ -149,19 +152,21 @@ class preprocess_raw_data:
         return data
 
     def myfft(self, data, nfft = None, ifPlot = None):
+        ndim = data['data'].ndim
         if not nfft:
-            ndim = data['data'].ndim
             if ndim == 1:
                 nfft = len(data['data'])
-
             elif ndim == 2:
                 nfft = data['data'].shape[1]
             else:
                 raise ValueError("Not supporting the epoched data or any other data with dimension higher than 3")
         
-        Xf = np.zeros([data['nch'],nfft//2])
-        for ch in range(data['nch']):
-            Xf[ch,:] = np.abs(sp.fft.fft(data['data'][ch,:], nfft)[:nfft//2])**2
+        Xf = np.abs(sp.fft.fft(data['data'], nfft)/nfft)**2
+        if data['nch'] > 1:
+            Xf = Xf[:,:nfft//2]
+        else:
+            Xf = Xf[:nfft//2]
+
         freq = sp.fft.fftfreq(nfft, 1/data['srate'])[:nfft//2]
 
         if ifPlot:

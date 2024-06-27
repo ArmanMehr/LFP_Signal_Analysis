@@ -1,7 +1,9 @@
 import os
 import numpy as np
+from pathlib import Path
+import pickle
 
-def read_neural_data(file_path):
+def read_neural_data(file_path, ifsave = False):
     infoPath = os.path.join(file_path, 'Info.txt')
     DataPath_pre = [f for f in os.listdir(file_path) if f.startswith('Data')]
     DataPath = [os.path.join(file_path, name) for name in DataPath_pre]
@@ -52,5 +54,10 @@ def read_neural_data(file_path):
     rdata['time'] = time
     rdata['srate'] = SampleRate
     rdata['nch'] = channelData.shape[1]
+
+    if ifsave:
+        Path(file_path).mkdir(parents=True, exist_ok=True)
+        with open(file_path+'/data_raw.pkl', 'wb') as f:
+            pickle.dump(rdata, f)
 
     return rdata
