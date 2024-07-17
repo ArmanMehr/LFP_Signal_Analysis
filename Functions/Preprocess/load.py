@@ -8,5 +8,6 @@ def read_ppdata(dataFile):
             loaded_data = pickle.load(f)
     
     if '.mat' in dataFile:
-        sp.io.loadmat(dataFile)
-    return
+        loaded_data = sp.io.loadmat(dataFile)
+    
+    return loaded_data
