@@ -3,6 +3,27 @@ import numpy as np
 from pathlib import Path
 import pickle
 
+def read_groupdata(file_path, kword, ifsave = False):
+    gfolders = [x for x in os.listdir(file_path) if kword in x]
+    if file_path[-1] not in ['/',"\\"]:
+        file_path += '/'
+    
+    data = []
+    tags = []
+    for folder in gfolders:
+        rdata = read_neural_data(file_path+folder+'/')
+        data.append(rdata['data'])
+        tags.append(rdata['tags'])
+    data = np.concatenate(data,axis=1)
+    tags = np.concatenate(tags,axis=0)
+    time = np.arange(data.shape[1]) / rdata['srate']
+
+    rdata['data'] = data
+    rdata['tags'] = tags
+    rdata['time'] = time
+
+    return rdata
+
 def read_neural_data(file_path, ifsave = False):
     infoPath = os.path.join(file_path, 'Info.txt')
     DataPath_pre = [f for f in os.listdir(file_path) if f.startswith('Data')]
