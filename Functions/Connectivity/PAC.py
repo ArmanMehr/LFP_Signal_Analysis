@@ -1,25 +1,22 @@
 import numpy as np
 import scipy as sp
 import pywt
-import sys
 from tqdm import tqdm
+from ..Utils import ts_utils
 
-sys.path.insert(0, '../Utils/')
-import ts_utils
-
-def PAC_varTime_ts(sig_ph, sig_amp, Fs, twin = 1, tovp = 0.8, fph = [3,8], famp = [20,80], nins = 9, fres_param = 1, ifProgBar = True):
+def PAC_varTime_ts(sig_ph, sig_amp, Fs, twin = 1, tovp = 0.8, fph = [3,8], famp = [20,80], nbins = 9, fres_param = 1, ifProgBar = True):
 
     nwin = np.round(twin*Fs)
     novp = np.round(twin*Fs*tovp)
 
-    k = 128
+    k = 100
     scales = np.arange(1, k, fres_param)
-    f = pywt.scale2frequency(wavelet='morl',scale=scales)
-    while np.min(f) > fph[0] and np.shape(f[(f>=famp[0]) &(f<=famp[-1])])[0] < famp[-1]-fmap[0]+1:
-        k += 2
+    f = pywt.scale2frequency(wavelet='morl',scale=scales) * Fs
+    while (np.min(f) > fph[0]) or (np.shape(f[(f>=famp[0]) &(f<=famp[-1])])[0] < (famp[-1]-famp[0]+1)):
+        k += 10
         scales = np.arange(1, k)
-        f = pywt.scale2frequency(wavelet='morl',scale=scales)
-        if k > 2^15:
+        f = pywt.scale2frequency(wavelet='morl',scale=scales) * Fs
+        if (k > 2**14) or (fres_param <= 0):
             raise ValueError('Cannot find the best parameters for frequency resolution!')
     
     tfd_ph, f = pywt.cwt(sig_ph, scales = scales ,wavelet='morl', sampling_period=1/Fs)
@@ -47,10 +44,10 @@ def PAC_varTime_ts(sig_ph, sig_amp, Fs, twin = 1, tovp = 0.8, fph = [3,8], famp 
         pb = range(Lt)
         print('PAC calculation:')
         for ti in tqdm(pb):
-            PAC[ti,:,:] = PAC_MI(Phase, Amp, nbins)
+            PAC[ti,:,:] = PAC_MI(Phase[:,window_idx[ti,:]], Amp[:,window_idx[ti,:]], nbins)
     else:
         for ti in range(Lt):
-            PAC[ti,:,:] = PAC_MI(Phase, Amp, nbins)
+            PAC[ti,:,:] = PAC_MI(Phase[:,window_idx[ti,:]], Amp[:,window_idx[ti,:]], nbins)
     
     return PAC, tout, fph_vec, famp_vec
 
