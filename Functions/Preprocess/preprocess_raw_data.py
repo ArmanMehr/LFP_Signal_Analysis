@@ -7,7 +7,17 @@ from pathlib import Path
 from ..Basics import myfft
 
 class preprocess_raw_data:
-    def __init__(self, target_rate = 2000, filter_frange = [0.5,128], filter_order = 3, target_tags = [20,40], cleanLine_filtbw = 2, epoch_time_int = [-1,3], DataInfo = None, save_path = './'):
+    def __init__(self, target_rate = 2000,
+                filter_frange = [0.5,128],
+                filter_order = 3,
+                target_tags = [20,40],
+                ifCheckLine = False,
+                cleanLine_filtbw = 2,
+                epoch_time_int = [-1,3],
+                DataInfo = None,
+                save_path = './',
+                output_name = 'data_pp'):
+
         self.target_rate = target_rate
         self.filter_frange = filter_frange
         self.filter_order = filter_order
@@ -15,6 +25,8 @@ class preprocess_raw_data:
         self.cleanLine_filtbw = cleanLine_filtbw
         self.epoch_time_int = epoch_time_int
         self.save_path = save_path
+        self.ifCheckLine = ifCheckLine
+        self.output_name = output_name
 
     def fit(self, data):
 
@@ -31,17 +43,18 @@ class preprocess_raw_data:
         
         print('Finding fft and psd of data...')
         
-        myfft.getfft(data, ifPlot=True)
-        while True:
-            uans = input('Does it need notch filter at 50Hz?(y/n): ').lower()
-            if uans == 'y':
-                print('Applying notch filter on 50 with '+str(self.cleanLine_filtbw)+'Hz bandwidth...')
-                data_pp = self.filter_rdata(data_pp, freq_range = [50 - self.cleanLine_filtbw/2, 50 + self.cleanLine_filtbw/2], ifBandStop = True)
-                break
-            elif uans == 'n':
-                break
-            else:
-                print("The answer must be 'y' for yes or 'n' for no!")
+        if self.ifCheckLine:
+            myfft.getfft(data, ifPlot=True)
+            while True:
+                uans = input('Does it need notch filter at 50Hz?(y/n): ').lower()
+                if uans == 'y':
+                    print('Applying notch filter on 50 with '+str(self.cleanLine_filtbw)+'Hz bandwidth...')
+                    data_pp = self.filter_rdata(data_pp, freq_range = [50 - self.cleanLine_filtbw/2, 50 + self.cleanLine_filtbw/2], ifBandStop = True)
+                    break
+                elif uans == 'n':
+                    break
+                else:
+                    print("The answer must be 'y' for yes or 'n' for no!")
         
         print('Epoch data based on target tags...')
         for ev in self.target_tags:
@@ -58,10 +71,10 @@ class preprocess_raw_data:
         #     if not ''
         
         Path(self.save_path).mkdir(parents=True, exist_ok=True)
-        with open(self.save_path+'/data_pp.pkl', 'wb') as f:
+        with open(self.save_path+'/'+self.output_name+'.pkl', 'wb') as f:
             pickle.dump(data_pp, f)
 
-        print('The preprocessed data saved in "'+self.save_path+'/data_pp.pkl"')
+        print('The preprocessed data saved in "'+self.save_path+'/'+self.output_name+'.pkl"')
 
         return data_pp
 
