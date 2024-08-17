@@ -57,7 +57,10 @@ class preprocess_raw_data:
                     print("The answer must be 'y' for yes or 'n' for no!")
         
         print('Epoch data based on target tags...')
-        if data_pp['tags']['etimes'].size != 0:
+        self.target_tags = [e for e in self.target_tags if e in data_pp['tags']['etags']]
+        # self.target_tags = [t for t in target_tags if ]
+        print(self.target_tags)
+        if (data_pp['tags']['etimes'].size != 0) and len(self.target_tags) != 0:
             for ev in self.target_tags:
                 data_pp['ev'+str(ev)] = {}
                 epoched_data_temp = self.epoch_data(data_pp, target_tags = ev)

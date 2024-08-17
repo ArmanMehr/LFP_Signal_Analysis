@@ -4,7 +4,7 @@ from pathlib import Path
 import pickle
 
 def read_groupdata(file_path, kword, ifsave = False):
-    gfolders = [x for x in os.listdir(file_path) if kword in x]
+    gfolders = [x for x in os.listdir(file_path) if kword in x and os.path.isdir(x)]
     if file_path[-1] not in ['/',"\\"]:
         file_path += '/'
     
