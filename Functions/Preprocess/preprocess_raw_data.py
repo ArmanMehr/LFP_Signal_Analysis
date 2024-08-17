@@ -57,14 +57,17 @@ class preprocess_raw_data:
                     print("The answer must be 'y' for yes or 'n' for no!")
         
         print('Epoch data based on target tags...')
-        for ev in self.target_tags:
-            data_pp['ev'+str(ev)] = {}
-            epoched_data_temp = self.epoch_data(data_pp, target_tags = ev)
-            data_pp['ev'+str(ev)]['data'] = epoched_data_temp['data']
-            data_pp['ev'+str(ev)]['ntr'] = epoched_data_temp['ntr']
+        if data_pp['tags']['etimes'].size != 0:
+            for ev in self.target_tags:
+                data_pp['ev'+str(ev)] = {}
+                epoched_data_temp = self.epoch_data(data_pp, target_tags = ev)
+                data_pp['ev'+str(ev)]['data'] = epoched_data_temp['data']
+                data_pp['ev'+str(ev)]['ntr'] = epoched_data_temp['ntr']
 
-        data_pp['time'] = epoched_data_temp['time']
-        del data_pp['data']
+            data_pp['time'] = epoched_data_temp['time']
+            del data_pp['data']
+        else:
+            print('Skipped! Because we have no events!')
 
         # To be added (dataset info)        
         # if DataInfo:
