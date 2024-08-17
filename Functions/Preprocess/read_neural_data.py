@@ -11,7 +11,7 @@ def read_groupdata(file_path, kword, ifsave = False):
     data = []
     tags = []
     for folder in gfolders:
-        rdata = read_neural_data(file_path+folder+'/')
+        rdata = read_neural_data(os.path.join(file_path,folder))
         data.append(rdata['data'])
         tags.append(rdata['tags'])
     data = np.concatenate(data,axis=1)
