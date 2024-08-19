@@ -5,3 +5,5 @@ This repository contains python codes and functions for pre-processing and analy
 	* Fast Fourier Transform
 * Functional Connectivity
 	* Phase-Amplitude Coupling (PAC)
+* Complexity
+	* Lempel-Ziv Complexity
