@@ -40,10 +40,9 @@ class preprocess_raw_data:
         
         print('Band pass filter data based on filter_range:'+str(self.filter_frange)+'Hz...')
         data_pp = self.filter_rdata(data_pp, freq_range = self.filter_frange)
-        
-        print('Finding fft and psd of data...')
-        
+         
         if self.ifCheckLine:
+            print('Finding fft and psd of data...')
             myfft.getfft(data, ifPlot=True)
             while True:
                 uans = input('Does it need notch filter at 50Hz?(y/n): ').lower()
@@ -57,11 +56,11 @@ class preprocess_raw_data:
                     print("The answer must be 'y' for yes or 'n' for no!")
         
         print('Epoch data based on target tags...')
-        self.target_tags = [e for e in self.target_tags if e in data_pp['tags']['etags']]
-        # self.target_tags = [t for t in target_tags if ]
-        print(self.target_tags)
-        if (data_pp['tags']['etimes'].size != 0) and len(self.target_tags) != 0:
-            for ev in self.target_tags:
+        data_pp['data'] = np.float16(data_pp['data'])
+        data_pp['time'] = np.float16(data_pp['time'])
+        target_tags = [e for e in self.target_tags if e in data_pp['tags']['etags']]
+        if (data_pp['tags']['etimes'].size != 0) and len(target_tags) != 0:
+            for ev in target_tags:
                 data_pp['ev'+str(ev)] = {}
                 epoched_data_temp = self.epoch_data(data_pp, target_tags = ev)
                 data_pp['ev'+str(ev)]['data'] = epoched_data_temp['data']
@@ -71,6 +70,7 @@ class preprocess_raw_data:
             del data_pp['data']
         else:
             print('Skipped! Because we have no events!')
+        
 
         # To be added (dataset info)        
         # if DataInfo:
@@ -154,7 +154,7 @@ class preprocess_raw_data:
         
         data = deepcopy(data)
         data['tags']['etimes'] = data['tags']['etimes'][np.isin(data['tags']['etags'],target_tags)]
-        data['tags']['etags'] = data['tags']['etags'][np.isin(data['tags']['etags'],target_tags)]
+        data['tags']['etags'] = np.float16(data['tags']['etags'][np.isin(data['tags']['etags'],target_tags)])
         tags_idx = np.int32(np.round(data['tags']['etimes']*data['srate']))
         n_int = np.int32(np.array([self.epoch_time_int[0],self.epoch_time_int[-1] - 1/data['srate']])*data['srate'])
         n_epoch = n_int[-1]-n_int[0]+1
@@ -167,6 +167,6 @@ class preprocess_raw_data:
         data['time'] = np.arange(self.epoch_time_int[0],self.epoch_time_int[-1],1/data['srate'])
         data['ntr'] = np.shape(data['data'])[2]
 
-        data_epoched = (data_epoched - np.mean(data_epoched[:,data['time']<0,:], axis=1, keepdims=True))/np.std(data_epoched[:,data['time']<0,:], axis=1, keepdims=True)
-        data['data'] = np.apply_along_axis(sp.stats.zscore , 1, data['data'])
+        # data_epoched = (data_epoched - np.mean(data_epoched[:,data['time']<0,:], axis=1, keepdims=True))/np.std(data_epoched[:,data['time']<0,:], axis=1, keepdims=True)
+        # data['data'] = np.apply_along_axis(sp.stats.zscore , 1, data['data'])
         return data
