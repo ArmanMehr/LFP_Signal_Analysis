@@ -52,9 +52,10 @@ def read_neural_data(file_path, ifsave = False):
         
         for j in range(0, chCount * Resolution // 8, Resolution // 8):
             if Resolution == 16:
-                part_channelData[:, j // (Resolution // 8)] = Data[j::chCount * Resolution // 8 + 1] * 256 + Data[j + 1::chCount * Resolution // 8 + 1]
+                part_channelData[:, j // (Resolution // 8)] = (Data[j::chCount * Resolution // 8 + 1].astype(np.uint16) * 256 + Data[j + 1::chCount * Resolution // 8 + 1])
             elif Resolution == 24:
-                part_channelData[:, j // (Resolution // 8)] = Data[j::chCount * Resolution // 8 + 1] * 65536 + Data[j + 1::chCount * Resolution // 8 + 1] * 256 + Data[j + 2::chCount * Resolution // 8 + 1]
+                part_channelData[:, j // (Resolution // 8)] = (Data[j::chCount * Resolution // 8 + 1].astype(np.uint32) * 65536 + Data[j + 1::chCount * Resolution // 8 + 1].astype(np.uint32) * 256 + Data[j + 2::chCount * Resolution // 8 + 1])
+
         
         part_digitalByte[:, 0] = Data[chCount * Resolution // 8::chCount * Resolution // 8 + 1]
         channelData.append(part_channelData)

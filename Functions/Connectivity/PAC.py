@@ -4,7 +4,6 @@ import pywt
 from joblib import Parallel, delayed
 from copy import deepcopy
 from ..Utils import ts_utils
-import time
 
 def PAC_comodulogram_ts(sig_ph, sig_amp, Fs, fph = [3,8], famp = [20,80], nbins = 9, fres_param = 3.5, wavelet = 'cmor1.5-1.0'):
 
@@ -21,11 +20,11 @@ def PAC_comodulogram_ts(sig_ph, sig_amp, Fs, fph = [3,8], famp = [20,80], nbins 
         if (k > 2**14) or (fres_param <= 0):
             raise ValueError('Cannot find the best parameters for frequency resolution!')
     
-    tfd_ph, f = pywt.cwt(sig_ph_n, scales = scales ,wavelet = wavelet, sampling_period=1/Fs)
+    tfd_ph, f = pywt.cwt(sig_ph_n, scales = scales ,wavelet = wavelet, sampling_period=1/Fs, method='fft')
     if np.all(sig_ph_n==sig_amp_n):
         tfd_amp = tfd_ph
     else:
-        tfd_amp, f = pywt.cwt(sig_amp_n, scales = scales ,wavelet = 'morl', sampling_period=1/Fs)
+        tfd_amp, f = pywt.cwt(sig_amp_n, scales = scales ,wavelet = wavelet, sampling_period=1/Fs, method='fft')
 
     idx_ph = (f>=fph[0]) & (f<=fph[-1])
     idx_amp = (f>=famp[0]) & (f<=famp[-1])
@@ -48,8 +47,6 @@ def PAC_varTime_ts(sig_ph, sig_amp, Fs, twin = 1, tovp = 0.5, fph = [3,8], famp 
     sig_ph_n = sp.stats.zscore(sig_ph)
     sig_amp_n = sp.stats.zscore(sig_amp)
 
-    start = time.time()
-
     k = 100
     scales = np.arange(1, k, fres_param)
     f = pywt.scale2frequency(wavelet = wavelet, scale=scales) * Fs
@@ -60,11 +57,11 @@ def PAC_varTime_ts(sig_ph, sig_amp, Fs, twin = 1, tovp = 0.5, fph = [3,8], famp 
         if (k > 2**14) or (fres_param <= 0):
             raise ValueError('Cannot find the best parameters for frequency resolution!')
     
-    tfd_ph, f = pywt.cwt(sig_ph_n, scales = scales, wavelet = wavelet, sampling_period=1/Fs)
+    tfd_ph, f = pywt.cwt(sig_ph_n, scales = scales, wavelet = wavelet, sampling_period=1/Fs, method='fft')
     if np.all(sig_ph_n==sig_amp_n):
         tfd_amp = tfd_ph
     else:
-        tfd_amp, f = pywt.cwt(sig_amp_n, scales = scales, wavelet = wavelet, sampling_period=1/Fs)
+        tfd_amp, f = pywt.cwt(sig_amp_n, scales = scales, wavelet = wavelet, sampling_period=1/Fs, method='fft')
     
     idx_ph = (f>=fph[0]) & (f<=fph[-1])
     idx_amp = (f>=famp[0]) & (f<=famp[-1])
@@ -80,10 +77,6 @@ def PAC_varTime_ts(sig_ph, sig_amp, Fs, twin = 1, tovp = 0.5, fph = [3,8], famp 
     Lt = window_idx.shape[0]
     t = np.arange(0,len(sig_ph))/Fs
     tout = t[np.int16(np.median(window_idx,axis=1))]*1e3
-
-    end = time.time()
-    runtime = end - start  # calculate the elapsed time
-    print(f"Runtime: {runtime:.6f} seconds")
 
     PAC = np.zeros([Lt,Lfph,Lfamp])
     PAC = Parallel(n_jobs=8)(delayed(PAC_MI)(Phase[:,window_idx[ti,:]], Amp[:,window_idx[ti,:]], nbins) for ti in range(Lt))
